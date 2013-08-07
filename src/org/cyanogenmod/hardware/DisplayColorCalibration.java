@@ -75,5 +75,4 @@ public class DisplayColorCalibration {
     public static String getCurColors() {
         return "0 0 0";
     }
-
 }
