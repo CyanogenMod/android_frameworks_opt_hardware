@@ -34,12 +34,21 @@ package org.cyanogenmod.hardware;
 /* This would be just "Vibrator", but it conflicts with android.os.Vibrator */
 public class VibratorHW {
 
-    /* 
+    private static final String LEVEL_PATH = "/sys/class/timed_output/vibrator/pwm_value";
+    private static final String LEVEL_MAX_PATH = "/sys/class/timed_output/vibrator/pwm_max";
+    private static final String LEVEL_MIN_PATH = "/sys/class/timed_output/vibrator/pwm_min";
+    private static final String LEVEL_DEFAULT_PATH = "/sys/class/timed_output/vibrator/pwm_default";
+    private static final String LEVEL_THRESHOLD_PATH = "/sys/class/timed_output/vibrator/pwm_threshold";
+
+    /*
      * All HAF classes should export this boolean. 
      * Real implementations must, of course, return true 
      */
 
-    public static boolean isSupported() { return false; }
+    public static boolean isSupported() {
+        return (new File(LEVEL_MAX_PATH).exists()&& new File(LEVEL_PATH).exists() && new File(LEVEL_MIN_PATH).exists() && new File(LEVEL_DEFAULT_PATH).exists() && new File(LEVEL_THRESHOLD_PATH).exists());
+    }
+
 
     /*
      * Set the vibrator intensity to given integer input. That'll
@@ -48,15 +57,27 @@ public class VibratorHW {
      */
 
     public static boolean setIntensity(int intensity)  {
-        throw new UnsupportedOperationException();
+        File f = new File(LEVEL_PATH);
+
+        if(f.exists()) {
+            return FileUtils.writeLine(LEVEL_PATH, String.valueOf(intensity));
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
-    /* 
+    /*
      * What's the maximum integer value we take for setIntensity()?
      */
 
     public static int getMaxIntensity()  {
-        return -1;
+        File f = new File(LEVEL_MAX_PATH);
+
+        if(f.exists()) {
+            return Integer.parseInt(FileUtils.readOneLine(LEVEL_MAX_PATH));
+        } else {
+            return -1;
+        }
     }
 
     /* 
@@ -64,16 +85,28 @@ public class VibratorHW {
      */
 
     public static int getMinIntensity()  {
-        return -1;
+        File f = new File(LEVEL_MIN_PATH);
+
+        if(f.exists()) {
+            return Integer.parseInt(FileUtils.readOneLine(LEVEL_MIN_PATH));
+        } else {
+            return -1;
+        }
     }
 
-    /* 
+    /*
      * Is there a value between the 2 above which is considered
      * the safe max? If not, return anything < 0
      */
 
     public static int getWarningThreshold()  {
-        return -1;
+        File f = new File(LEVEL_THRESHOLD_PATH);
+
+        if(f.exists()) {
+            return Integer.parseInt(FileUtils.readOneLine(LEVEL_THRESHOLD_PATH));
+        } else {
+            return -1;
+        }
     }
 
     /* 
@@ -81,14 +114,25 @@ public class VibratorHW {
      */
 
     public static int getCurIntensity()  {
-        return -1;
+        File f = new File(LEVEL_PATH);
+
+        if(f.exists()) {
+            return Integer.parseInt(FileUtils.readOneLine(LEVEL_PATH));
+        } else {
+            return -1;
+        }
     }
 
     /* 
      * What's the shipping intensity value?
      */
 
-    public static int getDefaultIntensity()  {
-        return -1;
-    }
-}
+    public static boolean setIntensity(int intensity)  {
+        File f = new File(LEVEL_PATH);
+
+        if(f.exists()) {
+            return FileUtils.writeLine(LEVEL_PATH, String.valueOf(intensity));
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }}
