@@ -16,79 +16,79 @@
 
 package org.cyanogenmod.hardware;
 
-/* 
- * Vibrator intensity adjustment
- *
- * Exports methods to get the valid value boundaries, the
- * default and current intensities, and a method to set
- * the vibrator.
- *
- * Values exported by min/max can be the direct values required
- * by the hardware, or a local (to VibratorHW) abstraction that's
- * internally converted to something else prior to actual use. The
- * Settings user interface will normalize these into a 0-100 (percentage)
- * scale before showing them to the user, but all values passed to/from
- * the client (Settings) are in this class' scale.
- */
+import org.cyanogenmod.hardware.util.FileUtils;
 
-/* This would be just "Vibrator", but it conflicts with android.os.Vibrator */
+import java.io.File;
+
 public class VibratorHW {
 
-    /* 
-     * All HAF classes should export this boolean. 
-     * Real implementations must, of course, return true 
-     */
+    private static final String LEVEL_PATH = "/sys/class/timed_output/vibrator/pwm_value";
+    private static final String LEVEL_MAX_PATH = "/sys/class/timed_output/vibrator/pwm_max";
+    private static final String LEVEL_MIN_PATH = "/sys/class/timed_output/vibrator/pwm_min";
+    private static final String LEVEL_DEFAULT_PATH = "/sys/class/timed_output/vibrator/pwm_default";
+    private static final String LEVEL_THRESHOLD_PATH = "/sys/class/timed_output/vibrator/pwm_threshold";
 
-    public static boolean isSupported() { return false; }
-
-    /*
-     * Set the vibrator intensity to given integer input. That'll
-     * be a value between the boundaries set by get(Max|Min)Intensity
-     * (see below), and it's meant to be locally interpreted/used.
-     */
-
-    public static boolean setIntensity(int intensity)  {
-        throw new UnsupportedOperationException();
+    public static boolean isSupported() {
+        return (new File(LEVEL_MAX_PATH).exists()&& new File(LEVEL_PATH).exists() && new File(LEVEL_MIN_PATH).exists() && new File(LEVEL_DEFAULT_PATH).exists() && new File(LEVEL_THRESHOLD_PATH).exists());
     }
-
-    /* 
-     * What's the maximum integer value we take for setIntensity()?
-     */
 
     public static int getMaxIntensity()  {
-        return -1;
-    }
+        File f = new File(LEVEL_MAX_PATH);
 
-    /* 
-     * What's the minimum integer value we take for setIntensity()?
-     */
+        if(f.exists()) {
+            return Integer.parseInt(FileUtils.readOneLine(LEVEL_MAX_PATH));
+        } else {
+            return -1;
+        }
+    }
 
     public static int getMinIntensity()  {
-        return -1;
-    }
+        File f = new File(LEVEL_MIN_PATH);
 
-    /* 
-     * Is there a value between the 2 above which is considered
-     * the safe max? If not, return anything < 0
-     */
+        if(f.exists()) {
+            return Integer.parseInt(FileUtils.readOneLine(LEVEL_MIN_PATH));
+        } else {
+            return -1;
+        }
+    }
 
     public static int getWarningThreshold()  {
-        return -1;
-    }
+        File f = new File(LEVEL_THRESHOLD_PATH);
 
-    /* 
-     * What's the current intensity value?
-     */
+        if(f.exists()) {
+            return Integer.parseInt(FileUtils.readOneLine(LEVEL_THRESHOLD_PATH));
+        } else {
+            return -1;
+        }
+    }
 
     public static int getCurIntensity()  {
-        return -1;
+        File f = new File(LEVEL_PATH);
+
+        if(f.exists()) {
+            return Integer.parseInt(FileUtils.readOneLine(LEVEL_PATH));
+        } else {
+            return -1;
+        }
     }
 
-    /* 
-     * What's the shipping intensity value?
-     */
-
     public static int getDefaultIntensity()  {
-        return -1;
+        File f = new File(LEVEL_DEFAULT_PATH);
+
+        if(f.exists()) {
+            return Integer.parseInt(FileUtils.readOneLine(LEVEL_DEFAULT_PATH));
+        } else {
+            return -1;
+        }
+    }
+
+    public static boolean setIntensity(int intensity)  {
+        File f = new File(LEVEL_PATH);
+
+        if(f.exists()) {
+            return FileUtils.writeLine(LEVEL_PATH, String.valueOf(intensity));
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 }
