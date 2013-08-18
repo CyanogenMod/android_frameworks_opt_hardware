@@ -19,6 +19,7 @@ package org.cyanogenmod.hardware.util;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -28,6 +29,13 @@ public final class FileUtils {
 
     private FileUtils() {
         // this class is not supposed to be instantiated
+    }
+
+    /**
+     * Checks if the given file exists
+     */
+    public static boolean fileExists(String filename) {
+        return new File(filename).exists();
     }
 
     /**
