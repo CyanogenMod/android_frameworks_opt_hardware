@@ -71,12 +71,20 @@ public class DisplayGammaCalibration {
         return -1;
     }
 
+    public static int getMaxValue(int controlIdx) {
+        return getMaxValue();
+    }
+
     /*
      * What's the minimum integer value we take for a color
      */
 
     public static int getMinValue() {
         return -1;
+    }
+
+    public static int getMinValue(int controlIdx) {
+        return getMinValue();
     }
 
     /*
