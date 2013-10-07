@@ -65,6 +65,7 @@ public class DisplayGammaCalibration {
 
     /*
      * What's the maximum integer value we take for a color
+     * Deprecated, do not use.
      */
 
     public static int getMaxValue() {
@@ -72,11 +73,30 @@ public class DisplayGammaCalibration {
     }
 
     /*
+     * What's the control specific maximum integer value
+     * we take for a color
+     */
+
+    public static int getMaxValue(int controlIdx) {
+        return getMaxValue();
+    }
+
+    /*
      * What's the minimum integer value we take for a color
+     * Deprecated, do not use.
      */
 
     public static int getMinValue() {
         return -1;
+    }
+
+    /*
+     * What's the control specific minimum integer value
+     * we take for a color
+     */
+
+    public static int getMinValue(int controlIdx) {
+        return getMinValue();
     }
 
     /*
