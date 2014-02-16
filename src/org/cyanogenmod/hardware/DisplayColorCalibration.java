@@ -23,7 +23,7 @@ package org.cyanogenmod.hardware;
  * current color values, and a method to set new ones.
  *
  * Values exported by min/max can be the direct values required
- * by the hardware, or a local (to DisplayColorCalibration) abstraction 
+ * by the hardware, or a local (to DisplayColorCalibration) abstraction
  * that's internally converted to something else prior to actual use. The
  * Settings user interface will normalize these into a 0-100 (percentage)
  * scale before showing them to the user, but all values passed to/from
@@ -32,9 +32,9 @@ package org.cyanogenmod.hardware;
 
 public class DisplayColorCalibration {
 
-    /* 
-     * All HAF classes should export this boolean. 
-     * Real implementations must, of course, return true 
+    /*
+     * All HAF classes should export this boolean.
+     * Real implementations must, of course, return true
      */
 
     public static boolean isSupported() { return false; }
@@ -50,7 +50,7 @@ public class DisplayColorCalibration {
         throw new UnsupportedOperationException();
     }
 
-    /* 
+    /*
      * What's the maximum integer value we take for a color
      */
 
@@ -58,7 +58,7 @@ public class DisplayColorCalibration {
         return -1;
     }
 
-    /* 
+    /*
      * What's the minimum integer value we take for a color
      */
 
@@ -66,7 +66,15 @@ public class DisplayColorCalibration {
         return -1;
     }
 
-    /* 
+    /*
+     * What's the default integer value we take for a color
+     */
+
+    public static int getDefValue() {
+        return -1;
+    }
+
+    /*
      * What's the current RGB triplet?
      * This should return a space-separated set of integers in
      * a string, same format as the input to setColors()
