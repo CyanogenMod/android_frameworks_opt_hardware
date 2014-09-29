@@ -45,4 +45,12 @@ public class ColorEnhancement {
      */
     public static boolean setEnabled(boolean status) { return false; }
 
+
+    /**
+     * Returns the default state of CE
+     *
+     * @return boolean True if CE should be enabled by default
+     */
+    public static boolean getDefaultValue() { return true; }
+
 }
