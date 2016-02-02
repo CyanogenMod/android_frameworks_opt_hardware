@@ -16,23 +16,51 @@
 
 package org.cyanogenmod.hardware;
 
+import org.cyanogenmod.hardware.util.FileUtils;
+
 /**
  * Generate a unique but deterministic ID for this hardware, based on unchangeable
  * hardware serial numbers.
  */
 public class UniqueDeviceId {
+    private static final int TYPE_MMC0_CID = 0;
+
+    private static String sUniqueId = null;
 
     /**
      * Whether device supports reporting a unique device id.
      *
      * @return boolean Supported devices must return always true
      */
-    public static boolean isSupported() { return false; }
+    public static boolean isSupported() {
+        return getUniqueDeviceIdInternal() != null;
+    }
 
     /**
      * This method retreives a unique ID for the device.
      *
      * @return String The unique device ID
      */
-    public static String getUniqueDeviceId() { return null; }
+    public static String getUniqueDeviceId() {
+        return getUniqueDeviceIdInternal();
+    }
+
+    private static String getUniqueDeviceIdInternal() {
+        if (sUniqueId != null) {
+            return sUniqueId;
+        }
+
+        String sCid = FileUtils.readOneLine("/sys/block/mmcblk0/device/cid");
+        if (sCid != null) {
+            sCid = sCid.trim();
+            if (sCid.length() == 32) {
+                sUniqueId = String.format("%03x00000%32s", TYPE_MMC0_CID, sCid);
+                return sUniqueId;
+            }
+        }
+
+        /* Any additional types should be added here. */
+
+        return null;
+    }
 }
