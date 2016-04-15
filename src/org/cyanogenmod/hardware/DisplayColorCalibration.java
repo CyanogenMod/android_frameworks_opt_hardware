@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The CyanogenMod Project
+ * Copyright (C) 2014 The CyanogenMod Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,71 +16,134 @@
 
 package org.cyanogenmod.hardware;
 
-/* 
- * Display RGB intensity calibration (kcal)
- *
- * Exports methods to get the valid value boundaries, the
- * current color values, and a method to set new ones.
- *
- * Values exported by min/max can be the direct values required
- * by the hardware, or a local (to DisplayColorCalibration) abstraction
- * that's internally converted to something else prior to actual use. The
- * Settings user interface will normalize these into a 0-100 (percentage)
- * scale before showing them to the user, but all values passed to/from
- * the client (Settings) are in this class' scale.
- */
+import android.os.IBinder;
+import android.os.Parcel;
+import android.os.RemoteException;
+import android.os.ServiceManager;
+import android.os.SystemProperties;
+import android.util.Slog;
+
+import org.cyanogenmod.hardware.util.FileUtils;
+
+import java.io.File;
 
 public class DisplayColorCalibration {
 
-    /*
-     * All HAF classes should export this boolean.
-     * Real implementations must, of course, return true
-     */
+    private static final String TAG = "DisplayColorCalibration";
 
-    public static boolean isSupported() { return false; }
+    private static final String COLOR_FILE = "/sys/class/graphics/fb0/rgb";
 
-    /*
-     * Set the RGB values to the given input triplet. Input is
-     * expected to consist of 3 values, space-separated, each to
-     * be a value between the boundaries set by get(Max|Min)Value
-     * (see below), and it's meant to be locally interpreted/used.
-     */
+    private static final boolean sUseGPUMode;
 
-    public static boolean setColors(String colors) {
-        throw new UnsupportedOperationException();
+    private static final int MIN = 255;
+    private static final int MAX = 32768;
+
+    private static final int[] sCurColors = new int[] { MAX, MAX, MAX };
+
+    static {
+        // We can also support GPU transform using RenderEngine. This is not
+        // preferred though, as it has a high power cost.
+        sUseGPUMode = !(new File(COLOR_FILE).exists()) ||
+                SystemProperties.getBoolean("debug.livedisplay.force_gpu", false);
     }
 
-    /*
-     * What's the maximum integer value we take for a color
-     */
-
-    public static int getMaxValue() {
-        return -1;
+    public static boolean isSupported() {
+        // Always true, use GPU mode if no HW support
+        return true;
     }
 
-    /*
-     * What's the minimum integer value we take for a color
-     */
-
-    public static int getMinValue() {
-        return -1;
+    public static int getMaxValue()  {
+        return MAX;
     }
 
-    /*
-     * What's the default integer value we take for a color
-     */
+    public static int getMinValue()  {
+        return MIN;
+    }
 
     public static int getDefValue() {
-        return -1;
+        return getMaxValue();
     }
 
-    /*
-     * What's the current RGB triplet?
-     * This should return a space-separated set of integers in
-     * a string, same format as the input to setColors()
+    public static String getCurColors()  {
+        if (!sUseGPUMode) {
+            return FileUtils.readOneLine(COLOR_FILE);
+        }
+
+        return sCurColors[0] + " " + sCurColors[1] + " " + sCurColors[2];
+    }
+
+    public static boolean setColors(String colors) {
+        if (!sUseGPUMode) {
+            return FileUtils.writeLine(COLOR_FILE, colors);
+        }
+
+        float[] mat = toColorMatrix(colors);
+
+        // set to null if identity
+        if (mat == null ||
+                (mat[0] == 1.0f && mat[5] == 1.0f &&
+                 mat[10] == 1.0f && mat[15] == 1.0f)) {
+            return setColorTransform(null);
+        }
+        return setColorTransform(mat);
+    }
+
+    private static float[] toColorMatrix(String rgbString) {
+        String[] adj = rgbString == null ? null : rgbString.split(" ");
+
+        if (adj == null || adj.length != 3) {
+            return null;
+        }
+
+        float[] mat = new float[16];
+
+        // sanity check
+        for (int i = 0; i < 3; i++) {
+            int v = Integer.parsePositiveInt(adj[i]);
+
+            if (v >= MAX) {
+                v = MAX;
+            } else if (v < MIN) {
+                v = MIN;
+            }
+
+            mat[i * 5] = (float)v / (float)MAX;
+            sCurColors[i] = v;
+        }
+
+        mat[15] = 1.0f;
+        return mat;
+    }
+
+    /**
+     * Sets the surface flinger's color transformation as a 4x4 matrix. If the
+     * matrix is null, color transformations are disabled.
+     *
+     * @param m the float array that holds the transformation matrix, or null to
+     *            disable transformation
      */
-
-    public static String getCurColors() {
-        return "0 0 0";
+    private static boolean setColorTransform(float[] m) {
+        try {
+            final IBinder flinger = ServiceManager.getService("SurfaceFlinger");
+            if (flinger != null) {
+                final Parcel data = Parcel.obtain();
+                data.writeInterfaceToken("android.ui.ISurfaceComposer");
+                if (m != null) {
+                    data.writeInt(1);
+                    for (int i = 0; i < 16; i++) {
+                        data.writeFloat(m[i]);
+                    }
+                } else {
+                    data.writeInt(0);
+                }
+                flinger.transact(1030, data, null, 0);
+                data.recycle();
+            }
+        } catch (RemoteException ex) {
+            Slog.e(TAG, "Failed to set color transform", ex);
+            return false;
+        }
+        return true;
     }
+
 }
