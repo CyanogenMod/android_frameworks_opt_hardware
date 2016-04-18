@@ -43,7 +43,8 @@ public class DisplayColorCalibration {
     static {
         // We can also support GPU transform using RenderEngine. This is not
         // preferred though, as it has a high power cost.
-        sUseGPUMode = !(new File(COLOR_FILE).exists()) ||
+        final File sysfs = new File(COLOR_FILE);
+        sUseGPUMode = (!sysfs.exists() || !sysfs.canWrite()) ||
                 SystemProperties.getBoolean("debug.livedisplay.force_gpu", false);
     }
 
@@ -69,8 +70,8 @@ public class DisplayColorCalibration {
             return FileUtils.readOneLine(COLOR_FILE);
         }
 
-        return String.format("%d %d %d", sCurColors[0] * MAX,
-                sCurColors[1] * MAX, sCurColors[2] * MAX);
+        return String.format("%d %d %d", sCurColors[0],
+                sCurColors[1], sCurColors[2]);
     }
 
     public static boolean setColors(String colors) {
