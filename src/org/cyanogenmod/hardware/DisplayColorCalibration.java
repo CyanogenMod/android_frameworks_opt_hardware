@@ -43,7 +43,8 @@ public class DisplayColorCalibration {
     static {
         // We can also support GPU transform using RenderEngine. This is not
         // preferred though, as it has a high power cost.
-        sUseGPUMode = !(new File(COLOR_FILE).exists()) ||
+        final File sysfs = new File(COLOR_FILE);
+        sUseGPUMode = (!sysfs.exists() || !sysfs.canWrite()) ||
                 SystemProperties.getBoolean("debug.livedisplay.force_gpu", false);
     }
 
