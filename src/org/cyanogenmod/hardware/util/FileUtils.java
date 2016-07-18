@@ -19,6 +19,7 @@ package org.cyanogenmod.hardware.util;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -37,8 +38,13 @@ public final class FileUtils {
         String line = null;
         BufferedReader reader = null;
 
+        final File file = new File(fileName);
+        if (!file.exists() || !file.canRead()) {
+            return null;
+        }
+
         try {
-            reader = new BufferedReader(new FileReader(fileName), 512);
+            reader = new BufferedReader(new FileReader(file), 512);
             line = reader.readLine();
         } catch (IOException e) {
             Log.e(TAG, "Could not read from file " + fileName, e);
