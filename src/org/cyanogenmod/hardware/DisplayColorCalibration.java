@@ -98,7 +98,7 @@ public class DisplayColorCalibration {
 
         // sanity check
         for (int i = 0; i < 3; i++) {
-            int v = Integer.parsePositiveInt(adj[i]);
+            int v = Integer.parseInt(adj[i]);
 
             if (v >= MAX) {
                 v = MAX;
