@@ -20,30 +20,16 @@ import android.os.IBinder;
 import android.os.Parcel;
 import android.os.RemoteException;
 import android.os.ServiceManager;
-import android.os.SystemProperties;
 import android.util.Slog;
-
-import org.cyanogenmod.internal.util.FileUtils;
 
 public class DisplayColorCalibration {
 
     private static final String TAG = "DisplayColorCalibration";
 
-    private static final String COLOR_FILE = "/sys/class/graphics/fb0/rgb";
-
-    private static final boolean sUseGPUMode;
-
     private static final int MIN = 255;
     private static final int MAX = 32768;
 
     private static final int[] sCurColors = new int[] { MAX, MAX, MAX };
-
-    static {
-        // We can also support GPU transform using RenderEngine. This is not
-        // preferred though, as it has a high power cost.
-        sUseGPUMode = !FileUtils.isFileWritable(COLOR_FILE) ||
-                SystemProperties.getBoolean("debug.livedisplay.force_gpu", false);
-    }
 
     public static boolean isSupported() {
         // Always true, use GPU mode if no HW support
@@ -63,19 +49,11 @@ public class DisplayColorCalibration {
     }
 
     public static String getCurColors()  {
-        if (!sUseGPUMode) {
-            return FileUtils.readOneLine(COLOR_FILE);
-        }
-
         return String.format("%d %d %d", sCurColors[0],
                 sCurColors[1], sCurColors[2]);
     }
 
     public static boolean setColors(String colors) {
-        if (!sUseGPUMode) {
-            return FileUtils.writeLine(COLOR_FILE, colors);
-        }
-
         float[] mat = toColorMatrix(colors);
 
         // set to null if identity
